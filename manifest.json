@@ -1,0 +1,10 @@
+{
+  "name": "Cykeltøj nu",
+  "short_name": "Cykeltøj",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#e8f7ff",
+  "theme_color": "#1683c5",
+  "description": "Find det rigtige cykeltøj ud fra vejret.",
+  "lang": "da"
+}
