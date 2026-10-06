@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cykeltøj nu 🚴</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(180deg, #e8f7ff, #ffffff);
+    color: #222;
+}
+
+.container {
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    font-size: 32px;
+    margin-bottom: 5px;
+}
+
+.subtitle {
+    text-align: center;
+    color: #666;
+    margin-bottom: 25px;
+}
+
+.card {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 18px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 8px;
+}
+
+input {
+    width: 100%;
+    padding: 14px;
+    border: 1px solid #ccc;
+    border-radius: 12px;
+    font-size: 16px;
+}
+
+button {
+    width: 100%;
+    padding: 15px;
+    margin-top: 12px;
+    border: none;
+    border-radius: 12px;
+    background: #1683c5;
+    color: white;
+    font-size: 17px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #106b9f;
+}
+
+.weather {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.weather-box {
+    background: #f1f8fc;
+    padding: 15px;
+    border-radius: 14px;
+    text-align: center;
+}
+
+.number {
+    font-size: 27px;
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+.recommendation {
+    font-size: 19px;
+    line-height: 1.5;
+}
+
+.clothes {
+    margin-top: 15px;
+}
+
+.clothes div {
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.clothes div:last-child {
+    border-bottom: none;
+}
+
+.loading {
+    text-align: center;
+    color: #666;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🚴 Cykeltøj nu</h1>
+<div class="subtitle">
+Hvad skal du have på til cykelturen?
+</div>
+
+<div class="card">
+
+<label for="city">Hvor vil du cykle?</label>
+
+<input
+    id="city"
+    type="text"
+    placeholder="F.eks. Vejle"
+>
+
+<button onclick="getWeather()">
+🌤️ Find vejret
+</button>
+
+</div>
+
+<div id="result"></div>
+
+</div>
+
+<script>
+
+async function getWeather() {
+
+    const city = document.getElementById("city").value.trim();
+
+    if (!city) {
+        alert("Skriv en by først 😊");
+        return;
+    }
+
+    document.getElementById("result").innerHTML =
+        '<div class="card loading">⏳ Henter vejret...</div>';
+
+    try {
+
+        const geoResponse = await fetch(
+            "https://geocoding-api.open-meteo.com/v1/search?name=" +
+            encodeURIComponent(city) +
+            "&count=1&language=da&format=json"
+        );
+
+        const geo = await geoResponse.json();
+
+        if (!geo.results || geo.results.length === 0) {
+            throw new Error("By ikke fundet");
+        }
+
+        const location = geo.results[0];
+
+        const weatherResponse = await fetch(
+            "https://api.open-meteo.com/v1/forecast?" +
+            "latitude=" + location.latitude +
+            "&longitude=" + location.longitude +
+            "&current=temperature_2m,wind_speed_10m,precipitation" +
+            "&wind_speed_unit=ms"
+        );
+
+        const weather = await weatherResponse.json();
+
+        const temp = weather.current.temperature_2m;
+        const wind = weather.current.wind_speed_10m;
+        const rain = weather.current.precipitation;
+
+        let recommendation = "";
+        let clothes = [];
+
+        if (temp < 5) {
+
+            recommendation =
+                "🥶 Det er koldt – klæd dig varmt på.";
+
+            clothes = [
+                "🧥 Vintercykeljakke",
+                "👕 Varmt baselayer",
+                "🧤 Varme cykelhandsker",
+                "🧢 Hue eller pandebånd",
+                "👖 Lange cykelbukser",
+                "🧦 Varme cykelsokker",
+                "👟 Vinterovertræk til sko"
+            ];
+
+        } else if (temp < 10) {
+
+            recommendation =
+                "❄️ Køligt – du skal have godt med tøj på.";
+
+            clothes = [
+                "🧥 Cykeljakke",
+                "👕 Langærmet baselayer",
+                "🧤 Cykelhandsker",
+                "👖 Lange cykelbukser",
+                "🧦 Cykelsokker",
+                "👟 Skoovertræk"
+            ];
+
+        } else if (temp < 15) {
+
+            recommendation =
+                "🌥️ Friskt cykelvejr – tag flere lag på.";
+
+            clothes = [
+                "🧥 Let cykeljakke eller vest",
+                "👕 Langærmet trøje",
+                "🧤 Tynde handsker",
+                "👖 Lange eller 3/4 cykelbukser",
+                "🧦 Cykelsokker"
+            ];
+
+        } else if (temp < 20) {
+
+            recommendation =
+                "🚴 Perfekt cykelvejr – let påklædning.";
+
+            clothes = [
+                "👕 Kortærmet cykeltrøje",
+                "🦺 Let vest",
+                "🩳 Korte cykelbukser",
+                "🧤 Tynde handsker"
+            ];
+
+        } else if (temp < 25) {
+
+            recommendation =
+                "☀️ Dejligt cykelvejr!";
+
+            clothes = [
+                "👕 Kortærmet cykeltrøje",
+                "🩳 Korte cykelbukser",
+                "🧤 Tynde cykelhandsker",
+                "🧴 Husk solcreme"
+            ];
+
+        } else {
+
+            recommendation =
+                "🔥 Det er varmt – vælg meget let cykeltøj.";
+
+            clothes = [
+                "👕 Meget let cykeltrøje",
+                "🩳 Korte cykelbukser",
+                "🧤 Lette handsker",
+                "🧴 Solcreme",
+                "💧 Husk ekstra væske"
+            ];
+        }
+
+        if (wind >= 8) {
+            clothes.push("🌬️ Vindvest/jakke anbefales – det blæser kraftigt");
+        } else if (wind >= 5) {
+            clothes.push("🌬️ Overvej en vindvest");
+        }
+
+        if (rain > 0) {
+            clothes.push("🌧️ Regnjakke anbefales");
+        }
+
+        document.getElementById("result").innerHTML = `
+
+            <div class="card">
+
+                <h2>📍 ${location.name}</h2>
+
+                <div class="weather">
+
+                    <div class="weather-box">
+                        🌡️ Temperatur
+                        <div class="number">
+                            ${Math.round(temp)}°C
+                        </div>
+                    </div>
+
+                    <div class="weather-box">
+                        🌬️ Vind
+                        <div class="number">
+                            ${Math.round(wind)} m/s
+                        </div>
+                    </div>
+
+                    <div class="weather-box">
+                        🌧️ Nedbør
+                        <div class="number">
+                            ${rain} mm
+                        </div>
+                    </div>
+
+                    <div class="weather-box">
+                        🚴
+                        <div class="number">
+                            Cykelklart
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="card">
+
+                <h2>👕 Min anbefaling</h2>
+
+                <div class="recommendation">
+                    ${recommendation}
+                </div>
+
+                <div class="clothes">
+
+                    ${clothes.map(item =>
+                        `<div>${item}</div>`
+                    ).join("")}
+
+                </div>
+
+            </div>
+        `;
+
+    } catch (error) {
+
+        document.getElementById("result").innerHTML = `
+            <div class="card">
+                ❌ Jeg kunne ikke finde vejret for den by.
+                <br><br>
+                Prøv f.eks. <b>Vejle</b>, <b>Esbjerg</b> eller <b>København</b>.
+            </div>
+        `;
+    }
+}
+
+</script>
+
+</body>
+</html>
